@@ -12,7 +12,7 @@ const Hero = () => {
 
     <div className="px-[200px]">
       {/* Navbar */}
-      <div>
+      <div className="w-full">
         <Navbar />
       </div>
 

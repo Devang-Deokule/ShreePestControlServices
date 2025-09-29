@@ -1,5 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
+import Navbar from "../components/Navbar";
+import { useParams } from "react-router-dom";
+
 
 export default function BookingForm() {
   const [formData, setFormData] = useState({
@@ -40,6 +43,7 @@ export default function BookingForm() {
   };
 
   return (
+      
     <form onSubmit={handleSubmit} className="space-y-4 p-6 border rounded-lg shadow-md max-w-lg mx-auto">
       <input type="text" name="fullName" placeholder="Full Name *" value={formData.fullName} onChange={handleChange} className="w-full border p-2 rounded" required />
       <input type="tel" name="phoneNumber" placeholder="Phone Number *" value={formData.phoneNumber} onChange={handleChange} className="w-full border p-2 rounded" required />
