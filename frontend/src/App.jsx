@@ -3,6 +3,7 @@ import Portfolio from "./pages/Portfolio";
 import ServiceDetail from "./pages/ServiceDetail";
 import Booking from "./pages/Booking";
 import AdminPage from "./pages/AdminPage";
+import BookingSuccess from "./pages/BookingSuccess"; // ✅ import it
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Route path="/services/:id" element={<ServiceDetail />} />
       <Route path="/booking" element={<Booking />} />
       <Route path="/admin" element={<AdminPage />} />
+      <Route path="/booking-success" element={<BookingSuccess />} /> {/* ✅ added */}
     </Routes>
   );
 }
