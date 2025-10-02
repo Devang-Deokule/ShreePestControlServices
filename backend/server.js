@@ -1,9 +1,13 @@
+// backend/server.js
 import express from "express";
 import mongoose from "mongoose";
-import cors from "cors";
 import dotenv from "dotenv";
+import cors from "cors";
+import bookingRoutes from "./routes/bookingRoutes.js";
+import nodemailer from "nodemailer";
 
 dotenv.config();
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -11,123 +15,114 @@ app.use(express.json());
 // =======================
 // MongoDB Connection
 // =======================
-mongoose.connect(process.env.MONGO_URI, {
+mongoose
+  .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log("✅ MongoDB Connected"))
-.catch(err => console.error("❌ MongoDB Error:", err));
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.error("❌ MongoDB Error:", err.message));
 
 // =======================
-// Booking Schema
+// OTP Store (in-memory)
 // =======================
-const bookingSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    phone: { type: String, required: true },
-    email: { type: String, required: true },
-    address: { type: String, required: true },
-    serviceType: { type: String, required: true },
-    urgency: { type: String, default: "Normal (3-5 days)" },
-    date: { type: String },
-    time: { type: String },
-    instructions: { type: String },
-    status: { type: String, default: "Pending" }
+const otpStore = {}; // { email: { otp, expires } }
+export const verifiedEmails = new Set(); // track verified emails
+
+// =======================
+// Nodemailer Transport (single account for all mails)
+// =======================
+export const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER, // e.g. devangdeokule26@gmail.com
+    pass: process.env.EMAIL_PASS, // Gmail App Password
+  },
 });
 
-const Booking = mongoose.model("Booking", bookingSchema);
+// Log credentials (safe check)
+console.log("📧 Email Config:", {
+  user: process.env.EMAIL_USER || "❌ MISSING",
+  pass: process.env.EMAIL_PASS ? "✔️ Exists" : "❌ Missing",
+});
+
+// =======================
+// Send OTP
+// =======================
+app.post("/api/send-otp", async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Email is required" });
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // 5 min expiry
+
+  try {
+    await transporter.sendMail({
+      from: `"Shree Pest Control" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your OTP Code – Shree Pest Control",
+      html: `
+        <h2>Welcome to Shree Pest Control Services</h2>
+        <p>Your One-Time Password (OTP) is:</p>
+        <h1 style="color:#00c2cb">${otp}</h1>
+        <p>This OTP will expire in 5 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+      `,
+    });
+
+    res.json({ success: true, message: "OTP sent" });
+  } catch (err) {
+    console.error("❌ OTP send error:", err.message);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to send OTP. Try again." });
+  }
+});
+
+// =======================
+// Verify OTP
+// =======================
+app.post("/api/verify-otp", (req, res) => {
+  const { email, otp } = req.body;
+  const record = otpStore[email];
+
+  if (!record) {
+    return res
+      .status(400)
+      .json({ success: false, message: "No OTP found. Please request again." });
+  }
+
+  if (Date.now() > record.expires) {
+    delete otpStore[email];
+    return res
+      .status(400)
+      .json({ success: false, message: "OTP expired. Please request again." });
+  }
+
+  if (record.otp !== otp) {
+    return res.status(400).json({ success: false, message: "Invalid OTP." });
+  }
+
+  // ✅ Success
+  delete otpStore[email];
+  verifiedEmails.add(email);
+
+  res.json({ success: true, message: "OTP verified successfully" });
+});
 
 // =======================
 // Routes
 // =======================
-
-// ✅ Save Booking (maps frontend fields → backend schema)
-app.post("/api/bookings", async (req, res) => {
-    try {
-        const {
-            fullName,
-            phoneNumber,
-            email,
-            serviceAddress,
-            serviceType,
-            urgency,
-            date,
-            time,
-            description
-        } = req.body;
-
-        const newBooking = new Booking({
-            name: fullName,
-            phone: phoneNumber,
-            email,
-            address: serviceAddress,
-            serviceType,
-            urgency,
-            date,
-            time,
-            instructions: description
-        });
-
-        await newBooking.save();
-        res.status(201).json({ message: "✅ Booking saved successfully!" });
-    } catch (err) {
-        console.error("❌ Error saving booking:", err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// ✅ Get all bookings (for admin)
-app.get("/api/admin/bookings", async (req, res) => {
-    try {
-        const bookings = await Booking.find().sort({ date: 1, time: 1 });
-        res.json(bookings);
-    } catch (err) {
-        console.error("❌ Error fetching bookings:", err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// ✅ Update booking (status, date, time)
-app.put("/api/admin/bookings/:id", async (req, res) => {
-    try {
-        const { status, date, time } = req.body;
-
-        const updatedBooking = await Booking.findByIdAndUpdate(
-            req.params.id,
-            {
-                ...(status && { status }),
-                ...(date && { date }),
-                ...(time && { time })
-            },
-            { new: true }
-        );
-
-        if (!updatedBooking) {
-            return res.status(404).json({ message: "Booking not found" });
-        }
-
-        res.json(updatedBooking);
-    } catch (err) {
-        console.error("❌ Error updating booking:", err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// ✅ Get stats (Pending, Completed, Rescheduled)
-app.get("/api/admin/stats", async (req, res) => {
-    try {
-        const pending = await Booking.countDocuments({ status: "Pending" });
-        const completed = await Booking.countDocuments({ status: "Completed" });
-        const rescheduled = await Booking.countDocuments({ status: "Rescheduled" });
-
-        res.json({ pending, completed, rescheduled });
-    } catch (err) {
-        console.error("❌ Error fetching stats:", err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
+app.use("/api", bookingRoutes);
 
 // =======================
 // Start Server
 // =======================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on http://localhost:${PORT}`)
+);
