@@ -12,16 +12,29 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 40px 20px;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+@media (min-width: 640px) {
+  .main {
+    padding: 40px 20px;
+  }
 }
 
 .card {
   background: #fff;
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 650px;
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: 24px;
+  }
 }
 
 .card.fixed-width {
@@ -32,9 +45,15 @@ body {
 .title {
   text-align: center;
   margin-bottom: 20px;
-  font-size: 1.6rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #222;
+}
+
+@media (min-width: 640px) {
+  .title {
+    font-size: 1.6rem;
+  }
 }
 
 .alert-msg {
@@ -52,9 +71,15 @@ body {
 ====================== */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 20px;
+}
+
+@media (min-width: 640px) {
+  .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
 }
 
 .field {
@@ -63,7 +88,13 @@ body {
 }
 
 .field.wide {
-  grid-column: span 2;
+  grid-column: span 1;
+}
+
+@media (min-width: 640px) {
+  .field.wide {
+    grid-column: span 2;
+  }
 }
 
 label {
@@ -177,11 +208,19 @@ button:disabled {
 .modal {
   background: #fff;
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   max-width: 420px;
-  width: 90%;
+  width: 95%;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
   text-align: center;
+  margin: 0 10px;
+}
+
+@media (min-width: 640px) {
+  .modal {
+    padding: 24px;
+    width: 90%;
+  }
 }
 
 .modal h3 {
@@ -200,19 +239,34 @@ button:disabled {
 .otp-input-container {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   margin: 15px 0;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .otp-input-container {
+    gap: 10px;
+  }
 }
 
 .otp-input {
-  width: 40px;
-  height: 48px;
-  font-size: 1.2rem;
+  width: 35px;
+  height: 40px;
+  font-size: 1rem;
   text-align: center;
   border: 2px solid #ccc;
   border-radius: 8px;
   outline: none;
   transition: border-color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .otp-input {
+    width: 40px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
 }
 
 .otp-input:focus {
@@ -241,6 +295,25 @@ button:disabled {
 /* ======================
    Validation Indicators
 ====================== */
+.pincode-status {
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .pincode-status {
+    font-size: 0.85rem;
+  }
+}
+
+.text-green {
+  color: green;
+}
+
+.text-red {
+  color: red;
+}
+
 .valid {
   color: green;
   font-size: 0.85rem;

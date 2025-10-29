@@ -32,7 +32,7 @@ const Branches = () => {
       </motion.h2>
 
       {/* Branches */}
-      <div className="flex gap-20 mt-10 flex-wrap justify-center">
+      <div className="flex gap-8 md:gap-12 lg:gap-20 mt-10 flex-wrap justify-center">
         {[
           {
             name: "Pali",
@@ -49,7 +49,7 @@ const Branches = () => {
         ].map((branch, index) => (
           <motion.div
             key={index}
-            className="w-[400px] h-[400px]"
+            className="w-[90vw] sm:w-[400px] max-w-[400px] h-[300px] md:h-[400px]"
             initial={{ opacity: 0, scale: 0.9, y: 50 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, delay: index * 0.2 }}
@@ -65,9 +65,9 @@ const Branches = () => {
                   ease: "easeInOut",
                 }}
               >
-                <MapPin className="w-6 h-6 text-red-500" />
+                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-red-500" />
               </motion.div>
-              <h1 className="text-black font-arial text-[25px] font-bold capitalize">
+              <h1 className="text-black font-arial text-[20px] md:text-[25px] font-bold capitalize">
                 {branch.name}
               </h1>
             </div>
@@ -88,8 +88,8 @@ const Branches = () => {
       </div>
     </div>
 
-        <footer className="bg-gray-900 text-gray-200 py-12 justify-center px-[200px]">
-      <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <footer className="bg-gray-900 text-gray-200 py-8 md:py-12 justify-center px-4 md:px-8 lg:px-[200px]">
+      <div className="container mx-auto px-4 md:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
 
         {/* Office Addresses */}
         <div>
